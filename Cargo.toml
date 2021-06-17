@@ -10,3 +10,8 @@ homepage = "https://github.com/thomvil/bit-index-rs"
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/thomvil/bit-index-rs"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 3
