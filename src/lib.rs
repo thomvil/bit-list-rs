@@ -1,12 +1,13 @@
-macro_rules! impl_bit_list {
-    ($bit_list_name:ident, $bit_list_type:ty) => {
-        pub struct $bit_list_name {
-            bits: $bit_list_type,
+macro_rules! impl_bit_index {
+    ($bit_index_name:ident, $bit_index_type:ty) => {
+        #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+        pub struct $bit_index_name {
+            bits: $bit_index_type,
             nb_bits: usize,
         }
 
-        impl $bit_list_name {
-            const SIZE: usize = std::mem::size_of::<$bit_list_type>() * 8;
+        impl $bit_index_name {
+            const SIZE: usize = std::mem::size_of::<$bit_index_type>() * 8;
 
             pub fn new(nb_bits: usize) -> Result<Self, String> {
                 if (nb_bits as usize) > Self::SIZE {
@@ -17,18 +18,26 @@ macro_rules! impl_bit_list {
                     ))
                 } else {
                     Ok(Self {
-                        bits: (1 << nb_bits) - 1,
+                        bits: Self::init(nb_bits),
                         nb_bits,
                     })
                 }
             }
 
-            pub fn unwrap(&self) -> $bit_list_type {
+            pub fn unwrap(&self) -> $bit_index_type {
                 self.bits
             }
 
             pub fn is_empty(&self) -> bool {
                 self.bits == 0
+            }
+
+            pub fn clear(&mut self) {
+                self.bits = 0;
+            }
+
+            pub fn restore(&mut self) {
+                self.bits = Self::init(self.nb_bits);
             }
 
             pub fn smallest(&self) -> Option<u8> {
@@ -69,14 +78,14 @@ macro_rules! impl_bit_list {
                 self.bits &= self.all_but_single_bit(bit_nb);
             }
 
-            fn single_bit(&self, bit_nb: u8) -> $bit_list_type {
+            fn single_bit(&self, bit_nb: u8) -> $bit_index_type {
                 self.check_input(bit_nb);
                 1 << bit_nb
             }
 
             // explicit check not necessary: handled by `single_bit`
-            fn all_but_single_bit(&self, bit_nb: u8) -> $bit_list_type {
-                <$bit_list_type>::MAX ^ self.single_bit(bit_nb)
+            fn all_but_single_bit(&self, bit_nb: u8) -> $bit_index_type {
+                <$bit_index_type>::MAX ^ self.single_bit(bit_nb)
             }
 
             fn check_input(&self, i: u8) {
@@ -87,15 +96,19 @@ macro_rules! impl_bit_list {
                     )
                 }
             }
+
+            fn init(nb_bits: usize) -> $bit_index_type {
+                (1 << nb_bits) - 1
+            }
         }
     };
 }
 
-impl_bit_list!(BitIndex8, u8);
-impl_bit_list!(BitIndex16, u16);
-impl_bit_list!(BitIndex32, u32);
-impl_bit_list!(BitIndex64, u64);
-impl_bit_list!(BitIndex128, u128);
+impl_bit_index!(BitIndex8, u8);
+impl_bit_index!(BitIndex16, u16);
+impl_bit_index!(BitIndex32, u32);
+impl_bit_index!(BitIndex64, u64);
+impl_bit_index!(BitIndex128, u128);
 
 #[cfg(test)]
 mod tests {
